@@ -19,11 +19,10 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // Identificador que define qual objeto está sendo desenhado no momento
-#define SPHERE 0
-#define BUNNY  1
+#define EEVEE 0
+#define COW  1
 #define PLANE  2
 #define CUTIFLY 3
-#define LUCARIO 4
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -41,6 +40,7 @@ out vec3 color;
 // Constantes
 #define M_PI   3.14159265358979323846
 #define M_PI_2 1.57079632679489661923
+
 
 void main()
 {
@@ -70,7 +70,7 @@ void main()
     float U = 0.0;
     float V = 0.0;
 
-    if ( object_id == SPHERE )
+    if ( object_id == EEVEE )
     {
         // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
         // projeção esférica EM COORDENADAS DO MODELO. Utilize como referência
@@ -86,8 +86,8 @@ void main()
         //   variável position_model
 
         vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
-        vec4 sphere_p = bbox_center + ((position_model - bbox_center)/length(position_model - bbox_center));
-        vec4 vector_p = sphere_p - bbox_center;
+        vec4 EEVEE_p = bbox_center + ((position_model - bbox_center)/length(position_model - bbox_center));
+        vec4 vector_p = EEVEE_p - bbox_center;
 
         float phi = asin(vector_p.y);
         float theta = atan(vector_p.x, vector_p.z);
@@ -95,7 +95,7 @@ void main()
         U = (theta + M_PI)/(2 * M_PI);
         V = (phi + M_PI_2)/(M_PI);
     }
-    else if ( object_id == BUNNY || object_id == CUTIFLY)
+    else if ( object_id == COW || object_id == CUTIFLY)
     {
         // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
         // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
@@ -133,10 +133,18 @@ void main()
     float lambert = max(0,dot(n,l));
 
     if (object_id == CUTIFLY) {
+        // Lambert Shading
         color = Kd2 * (lambert + 0.01);
+    } else if (object_id == COW) {
+        // Blinn-Phong Shading
+        vec4 h = (v + l) / length(v + l);
+
+        color = Kd0 * (lambert + 0.01) + vec3(0.2, 0.3, 1) * vec3(1, 1, 1) + vec3(1, 1, 1) * pow(dot(n, h), 80);
     } else {
         color = Kd0 * (lambert + 0.01) + Kd1 * (0.25 - lambert);
     }
+
+    // color = Kd0 * (lambert + 0.01) + vec3(0.2, 0.3, 1) * vec3(0, 1, 0))+ pow(vec3(1, 1, 1) * dot(n, h), 80);
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
