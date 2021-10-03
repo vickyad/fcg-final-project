@@ -197,6 +197,8 @@ bool g_PressingKeyA = false;
 bool g_PressingKeyW = false;
 bool g_PressingKeyS = false;
 
+
+// Booleano que define se a câmera será livre ou de look-at
 bool g_Key0Pressed = false;
 
 
@@ -284,6 +286,7 @@ int main(int argc, char* argv[])
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
     LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage1
+    LoadTextureImage("../../data/honey_comb.jpg"); // TextureImage2
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/eevee.obj");
