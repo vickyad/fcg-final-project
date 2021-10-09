@@ -144,10 +144,7 @@ void main()
         color = Kd0 * (lambert + 0.01) + Kd1 * (0.25 - lambert);
     }
 
-    // color = Kd0 * (lambert + 0.01) + vec3(0.2, 0.3, 1) * vec3(0, 1, 0))+ pow(vec3(1, 1, 1) * dot(n, h), 80);
-
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
     color = pow(color, vec3(1.0,1.0,1.0)/2.2);
 }
-

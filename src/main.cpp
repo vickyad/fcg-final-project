@@ -41,7 +41,6 @@
 #include "utils.h"
 #include "matrices.h"
 
-
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file.
 struct ObjModel
@@ -205,10 +204,13 @@ bool g_Key0Pressed = false;
 // Seta o vetor de c - o
 glm::vec4 initial_c_position = glm::vec4(0.0f, 0.0f, g_CameraDistance, 1.0f);
 
+// Coordenadas do eevee
+glm::vec3 eevee_1_coords = glm::vec3(-1.0f, 0.0f, 0.0f);
+ 
 
 // Função main
 int main(int argc, char* argv[])
-{
+{   
     // Booleano que define se a câmera é da forma Look-At (verdadeiro) ou livre (falso)
     bool isLookAtCamera = false;
 
@@ -334,10 +336,20 @@ int main(int argc, char* argv[])
     glm::vec4 camera_look_at_point = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
     glm::vec4 camera_view_vector = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // Vetor "view", sentido para onde a câmera está virada
 
+    float t_prev = (float)glfwGetTime();
+    float t_now = 0.0f;
+    float delta_t = 0.0f;
 
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
+        t_now = (float)glfwGetTime();
+        delta_t = (float)t_now - t_prev;
+        if (delta_t >= 0.2f) {
+            eevee_1_coords.x += sin(t_now) * 0.1f;
+            eevee_1_coords.z += cos(t_now) * 0.03f;
+        }
+
         // Aqui executamos as operações de renderização
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
@@ -447,7 +459,7 @@ int main(int argc, char* argv[])
         #define CUTIFLY 3
 
         // Desenhamos o modelo da esfera
-        model = Matrix_Translate(-1.0f,0.0f,0.0f)
+        model = Matrix_Translate(eevee_1_coords.x, eevee_1_coords.y, eevee_1_coords.z)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
               * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
