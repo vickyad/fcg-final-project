@@ -204,6 +204,14 @@ bool g_Key0Pressed = false;
 // Seta o vetor de c - o
 glm::vec4 initial_c_position = glm::vec4(0.0f, 0.0f, g_CameraDistance, 1.0f);
 
+
+// Curva de Bezier utilizada para a movimentação
+// FONTE
+// Os pontos foram retirados de um script feito em Python feito pela aluna Victória Duarte: https://github.com/vickyad/bezier-curve-calculator
+// O código base utilizado pela aluna pode ser visto nesse site: https://www.fatalerrors.org/a/drawing-bezier-curve-with-python.html
+float bezier_curve_x[] = {-0.6f, -0.5378249999999999f, -0.4715999999999999f, -0.40177500000000005f, -0.32880000000000004f, -0.253125f, -0.1752f, -0.09547500000000003f, -0.014399999999999968f, 0.06757499999999997f, 0.15000000000000002f, 0.232425f, 0.3144f, 0.395475f, 0.47519999999999996f, 0.5531250000000001f, 0.6288f, 0.701775f, 0.7716000000000002f, 0.8378249999999999f, 0.9f};
+float bezier_curve_y[] = {-0.3f, -0.1382f, -0.010599999999999984f, 0.08610000000000001f, 0.1552f, 0.19999999999999998f, 0.2238f, 0.22990000000000005f, 0.2216f, 0.2022f, 0.17500000000000002f, 0.14329999999999998f, 0.11040000000000003f, 0.0796f, 0.054200000000000054f, 0.037499999999999985f, 0.03280000000000003f, 0.04339999999999998f, 0.07260000000000005f, 0.12370000000000003f, 0.20000000000000007f};
+
 // Coordenadas do eevee
 glm::vec3 eevee_1_coords = glm::vec3(-1.0f, 0.0f, 0.0f);
  
@@ -291,9 +299,9 @@ int main(int argc, char* argv[])
     LoadTextureImage("../../data/honey_comb.jpg"); // TextureImage2
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel spheremodel("../../data/eevee.obj");
-    ComputeNormals(&spheremodel);
-    BuildTrianglesAndAddToVirtualScene(&spheremodel);
+    ObjModel eeveemodel("../../data/eevee.obj");
+    ComputeNormals(&eeveemodel);
+    BuildTrianglesAndAddToVirtualScene(&eeveemodel);
 
     ObjModel cowmodel("../../data/cow.obj");
     ComputeNormals(&cowmodel);
@@ -458,7 +466,7 @@ int main(int argc, char* argv[])
         #define PLANE  2
         #define CUTIFLY 3
 
-        // Desenhamos o modelo da esfera
+        // Desenhamos o modelo do eevee
         model = Matrix_Translate(eevee_1_coords.x, eevee_1_coords.y, eevee_1_coords.z)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
@@ -475,7 +483,7 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, EEVEE);
         DrawVirtualObject("eevee");
 
-        // Desenhamos o modelo do coelho
+        // Desenhamos o modelo da vaca
         model = Matrix_Translate(1.0f,0.0f,0.0f)
               * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
