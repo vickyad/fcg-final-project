@@ -209,11 +209,12 @@ glm::vec4 initial_c_position = glm::vec4(0.0f, 0.0f, g_CameraDistance, 1.0f);
 // FONTE
 // Os pontos foram retirados de um script feito em Python feito pela aluna Victória Duarte: https://github.com/vickyad/bezier-curve-calculator
 // O código base utilizado pela aluna pode ser visto nesse site: https://www.fatalerrors.org/a/drawing-bezier-curve-with-python.html
-float bezier_curve_x[] = {-0.6f, -0.5378249999999999f, -0.4715999999999999f, -0.40177500000000005f, -0.32880000000000004f, -0.253125f, -0.1752f, -0.09547500000000003f, -0.014399999999999968f, 0.06757499999999997f, 0.15000000000000002f, 0.232425f, 0.3144f, 0.395475f, 0.47519999999999996f, 0.5531250000000001f, 0.6288f, 0.701775f, 0.7716000000000002f, 0.8378249999999999f, 0.9f};
-float bezier_curve_y[] = {-0.3f, -0.1382f, -0.010599999999999984f, 0.08610000000000001f, 0.1552f, 0.19999999999999998f, 0.2238f, 0.22990000000000005f, 0.2216f, 0.2022f, 0.17500000000000002f, 0.14329999999999998f, 0.11040000000000003f, 0.0796f, 0.054200000000000054f, 0.037499999999999985f, 0.03280000000000003f, 0.04339999999999998f, 0.07260000000000005f, 0.12370000000000003f, 0.20000000000000007f};
+float bezier_curve_x[] = {-0.6f, -0.5756448f, -0.5505983999999999f, -0.5248896f, -0.49854719999999997f, -0.4715999999999999f, -0.44407679999999994f, -0.41600639999999994f, -0.38741760000000003f, -0.3583392f, -0.32880000000000004f, -0.2988288f, -0.2684544f, -0.2377056f, -0.20661119999999997f, -0.1752f, -0.14350079999999998f, -0.1115423999999999f, -0.07935359999999997f, -0.04696319999999998f, -0.014399999999999968f, 0.018307199999999996f, 0.051129600000000025f, 0.08403840000000007f, 0.11700480000000002f, 0.15000000000000002f, 0.18299520000000002f, 0.21596160000000003f, 0.24887040000000005f, 0.2816927999999999f, 0.3144f, 0.3469632f, 0.3793536f, 0.4115424f, 0.4435008000000001f, 0.47519999999999996f, 0.5066111999999999f, 0.5377056f, 0.5684544f, 0.5988288f, 0.6288f, 0.6583392f, 0.6874176000000001f, 0.7160064f, 0.7440768f, 0.7716000000000002f, 0.7985472000000002f, 0.8248895999999999f, 0.8505984f, 0.8756448f, 0.9f};
+float bezier_curve_y[] = {-0.3f, -0.23096479999999994f, -0.1677184f, -0.11004959999999998f, -0.057747199999999985f, -0.010599999999999984f, 0.0316032f, 0.06907360000000004f, 0.10202240000000001f, 0.13066080000000002f, 0.1552f, 0.1758512f, 0.1928256f, 0.20633440000000003f, 0.21658880000000003f, 0.2238f, 0.22817920000000003f, 0.22993760000000002f, 0.22928640000000003f, 0.2264368f, 0.2216f, 0.2149872f, 0.2068096f, 0.19727840000000002f, 0.18660480000000002f, 0.17500000000000002f, 0.16267520000000002f, 0.14984160000000002f, 0.13671039999999995f, 0.12349280000000001f, 0.11040000000000003f, 0.09764320000000001f, 0.0854336f, 0.07398239999999999f, 0.06350079999999998f, 0.054200000000000054f, 0.046291200000000046f, 0.03998560000000005f, 0.0354944f, 0.03302880000000002f, 0.03280000000000003f, 0.035019199999999986f, 0.039897599999999964f, 0.04764639999999995f, 0.05847680000000008f, 0.07260000000000005f, 0.09022720000000012f, 0.11156959999999999f, 0.13683840000000008f, 0.16624479999999997f, 0.20000000000000007f};
+int bezier_curve_control = 0;
 
 // Coordenadas do eevee
-glm::vec3 eevee_1_coords = glm::vec3(-1.0f, 0.0f, 0.0f);
+glm::vec3 eevee_1_coords = glm::vec3(-0.6f, 0.0f, -0.3f);
  
 
 // Função main
@@ -348,16 +349,12 @@ int main(int argc, char* argv[])
     float t_now = 0.0f;
     float delta_t = 0.0f;
 
+    // seta a velocidade de movimento
+    float speed = 0.15f;
+
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
-        t_now = (float)glfwGetTime();
-        delta_t = (float)t_now - t_prev;
-        if (delta_t >= 0.2f) {
-            eevee_1_coords.x += sin(t_now) * 0.1f;
-            eevee_1_coords.z += cos(t_now) * 0.03f;
-        }
-
         // Aqui executamos as operações de renderização
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
@@ -399,27 +396,38 @@ int main(int argc, char* argv[])
         glm::vec4 up_cross_w_vector = crossproduct(camera_up_vector, w_vector);
         glm::vec4 u_vector = up_cross_w_vector / norm(up_cross_w_vector);
 
-        // seta a velocidade de movimento
-        float speed = 0.15f;
         
-        // Caso alguma das teclas de movimentação estejam pressionadas, faz a movimentação de acordo
-        if(g_PressingKeyW) {
-            // movimentação para frente
-            camera_position_c += -w_vector * speed;
+        t_now = (float)glfwGetTime();
+        delta_t = (float)t_now - t_prev;
+        if (delta_t >= 0.025f) {
+            if (bezier_curve_control < 50) {
+                eevee_1_coords.x += bezier_curve_x[bezier_curve_control];
+                eevee_1_coords.z += bezier_curve_y[bezier_curve_control];
+                bezier_curve_control++;
+            }
+
+            // Caso alguma das teclas de movimentação estejam pressionadas, faz a movimentação de acordo
+            if(g_PressingKeyW) {
+                // movimentação para frente
+                camera_position_c += -w_vector * speed;
+            }
+            if(g_PressingKeyS) {
+                // movimentação para trás
+                camera_position_c += w_vector * speed;
+            }
+            if(g_PressingKeyD) {
+                // movimentação para direita
+                camera_position_c += u_vector * speed;
+            }
+            if(g_PressingKeyA) {
+                // movimentação para esquerda
+                camera_position_c += -u_vector * speed;
+            }
+            
+            t_prev = (float)glfwGetTime();
         }
-        if(g_PressingKeyS) {
-            // movimentação para trás
-            camera_position_c += w_vector * speed;
-        }
-        if(g_PressingKeyD) {
-            // movimentação para direita
-            camera_position_c += u_vector * speed;
-        }
-        if(g_PressingKeyA) {
-            // movimentação para esquerda
-            camera_position_c += -u_vector * speed;
-        }
-        
+
+
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
         glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
