@@ -14,26 +14,26 @@
 GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id); // Função definida em main.cpp
 
 const GLchar* const textvertexshader_source = ""
-"#version 330\n"
-"layout (location = 0) in vec4 position;\n"
-"out vec2 texCoords;\n"
-"void main()\n"
-"{\n"
-    "gl_Position = vec4(position.xy, 0, 1);\n"
-    "texCoords = position.zw;\n"
-"}\n"
-"\0";
+        "#version 330\n"
+        "layout (location = 0) in vec4 position;\n"
+        "out vec2 texCoords;\n"
+        "void main()\n"
+        "{\n"
+        "gl_Position = vec4(position.xy, 0, 1);\n"
+        "texCoords = position.zw;\n"
+        "}\n"
+        "\0";
 
 const GLchar* const textfragmentshader_source = ""
-"#version 330\n"
-"uniform sampler2D tex;\n"
-"in vec2 texCoords;\n"
-"out vec4 fragColor;\n"
-"void main()\n"
-"{\n"
-    "fragColor = vec4(0, 0, 0, texture(tex, texCoords).r);\n"
-"}\n"
-"\0";
+        "#version 330\n"
+        "uniform sampler2D tex;\n"
+        "in vec2 texCoords;\n"
+        "out vec4 fragColor;\n"
+        "void main()\n"
+        "{\n"
+        "fragColor = vec4(0, 0, 0, texture(tex, texCoords).r);\n"
+        "}\n"
+        "\0";
 
 void TextRendering_LoadShader(const GLchar* const shader_string, GLuint shader_id)
 {
@@ -164,7 +164,8 @@ void TextRendering_PrintString(GLFWwindow* window, const std::string &str, float
                 break;
             }
         }
-        if (!glyph) {
+        if (!glyph)
+        {
             continue;
         }
         x += glyph->kerning[0].kerning;
@@ -178,7 +179,11 @@ void TextRendering_PrintString(GLFWwindow* window, const std::string &str, float
         float s1 = glyph->s1 - 0.5f/dejavufont.tex_width;
         float t1 = glyph->t1 - 0.5f/dejavufont.tex_height;
 
-        struct {float x, y, s, t;} data[6] = {
+        struct
+        {
+            float x, y, s, t;
+        } data[6] =
+        {
             { x0, y0, s0, t0 },
             { x0, y1, s0, t1 },
             { x1, y1, s1, t1 },
@@ -304,3 +309,5 @@ void TextRendering_PrintMatrixVectorProductDivW(GLFWwindow* window, glm::mat4 M,
     snprintf(buffer, 90, "[%+0.2f %+0.2f %+0.2f %+0.2f][%+0.2f]     [%+0.2f]        [%+0.2f]\n", M[0][3], M[1][3], M[2][3], M[3][3], v[3], r[3], r[3]/w);
     TextRendering_PrintString(window, buffer, x, y - 3*lineheight, scale);
 }
+
+

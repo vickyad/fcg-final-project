@@ -114,6 +114,11 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
+// Funções de teste de colisão. Estas funções estão definidas no arquivo "collisions.cpp".
+bool PointSphereCollision(glm::vec4 point, glm::vec4 sphere_center, float radius);
+bool PointPlaneCollision(glm::vec4 point, glm::vec3 plane);
+bool SphereSphereCollision(glm::vec4 sphere_center_1, float radius_1, glm::vec4 sphere_center_2, float radius_2);
+
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
 struct SceneObject
@@ -213,16 +218,33 @@ float bezier_curve_x[] = {-0.6f, -0.5756448f, -0.5505983999999999f, -0.5248896f,
 float bezier_curve_y[] = {-0.3f, -0.23096479999999994f, -0.1677184f, -0.11004959999999998f, -0.057747199999999985f, -0.010599999999999984f, 0.0316032f, 0.06907360000000004f, 0.10202240000000001f, 0.13066080000000002f, 0.1552f, 0.1758512f, 0.1928256f, 0.20633440000000003f, 0.21658880000000003f, 0.2238f, 0.22817920000000003f, 0.22993760000000002f, 0.22928640000000003f, 0.2264368f, 0.2216f, 0.2149872f, 0.2068096f, 0.19727840000000002f, 0.18660480000000002f, 0.17500000000000002f, 0.16267520000000002f, 0.14984160000000002f, 0.13671039999999995f, 0.12349280000000001f, 0.11040000000000003f, 0.09764320000000001f, 0.0854336f, 0.07398239999999999f, 0.06350079999999998f, 0.054200000000000054f, 0.046291200000000046f, 0.03998560000000005f, 0.0354944f, 0.03302880000000002f, 0.03280000000000003f, 0.035019199999999986f, 0.039897599999999964f, 0.04764639999999995f, 0.05847680000000008f, 0.07260000000000005f, 0.09022720000000012f, 0.11156959999999999f, 0.13683840000000008f, 0.16624479999999997f, 0.20000000000000007f};
 int bezier_curve_control = 0;
 
+
 // Coordenadas do eevee
 glm::vec3 eevee_1_coords = glm::vec3(-0.6f, 0.0f, -0.3f);
- 
+glm::vec3 eevee_2_coords = glm::vec3(-0.9f, 0.0f, 0.0f);
+glm::vec3 cutifly_coords = glm::vec3(-0.1f, 0.0f, 0.0f);
+glm::vec3 cow_coords = glm::vec3(1.2f, 0.0f, 0.0f);
+
+
+bool checkBoundaries (glm::vec4 current_position) {
+    if (PointPlaneCollision(current_position, glm::vec3(10.0f, -100, -100))) {
+        return false;
+    }
+    if (PointPlaneCollision(current_position, glm::vec3(-10.0f, -100, -100))) {
+        return false;
+    }
+    if (PointPlaneCollision(current_position, glm::vec3(-100, -100, 10.0f))) {
+        return false;
+    }
+    if (PointPlaneCollision(current_position, glm::vec3(-100, -100, -10.0f))) {
+        return false;
+    }
+    return true;
+}
 
 // Função main
 int main(int argc, char* argv[])
-{   
-    // Booleano que define se a câmera é da forma Look-At (verdadeiro) ou livre (falso)
-    bool isLookAtCamera = false;
-
+{
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
     // sistema operacional, onde poderemos renderizar com OpenGL.
     int success = glfwInit();
@@ -298,6 +320,7 @@ int main(int argc, char* argv[])
     LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
     LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage1
     LoadTextureImage("../../data/honey_comb.jpg"); // TextureImage2
+    LoadTextureImage("../../data/ground.jpg"); // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel eeveemodel("../../data/eevee.obj");
@@ -390,40 +413,86 @@ int main(int argc, char* argv[])
         } else {
             camera_view_vector = glm::vec4(x   , -y  , z   , 0.0f); // Vetor "view", sentido para onde a câmera está virada
         }
-         
+
         // seta os vetores w, up e u
         glm::vec4 w_vector = -camera_view_vector / norm(camera_view_vector);
         glm::vec4 up_cross_w_vector = crossproduct(camera_up_vector, w_vector);
         glm::vec4 u_vector = up_cross_w_vector / norm(up_cross_w_vector);
 
-        
+
         t_now = (float)glfwGetTime();
         delta_t = (float)t_now - t_prev;
         if (delta_t >= 0.025f) {
             if (bezier_curve_control < 50) {
-                eevee_1_coords.x += bezier_curve_x[bezier_curve_control];
-                eevee_1_coords.z += bezier_curve_y[bezier_curve_control];
-                bezier_curve_control++;
+                float new_x = eevee_1_coords.x + bezier_curve_x[bezier_curve_control];
+                float new_z = eevee_1_coords.z + bezier_curve_y[bezier_curve_control];
+
+                // Verifica se o objeto vai colidir com a câmera antes de fazer a movimentação
+                if (!PointSphereCollision(glm::vec4(new_x, eevee_1_coords.y, new_z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !SphereSphereCollision(glm::vec4(new_x, eevee_1_coords.y, new_z, 1.0f), 1.0f, glm::vec4(eevee_2_coords.x, eevee_2_coords.y, eevee_2_coords.z, 1.0f), 1.0f)
+                    && !SphereSphereCollision(glm::vec4(new_x, eevee_1_coords.y, new_z, 1.0f), 1.0f, glm::vec4(cow_coords.x, cow_coords.y, cow_coords.z, 1.0f), 1.0f)
+                    && !SphereSphereCollision(glm::vec4(new_x, eevee_1_coords.y, new_z, 1.0f), 1.0f, glm::vec4(cutifly_coords.x, cutifly_coords.y, cutifly_coords.z, 1.0f), 1.0f)
+                ) {
+                    eevee_1_coords.x = new_x;
+                    eevee_1_coords.z = new_z;
+                    bezier_curve_control++;
+                }
             }
 
             // Caso alguma das teclas de movimentação estejam pressionadas, faz a movimentação de acordo
             if(g_PressingKeyW) {
-                // movimentação para frente
-                camera_position_c += -w_vector * speed;
+                // verifica se o jogador não passou das bordas do jogo
+                if (checkBoundaries(glm::vec4(x, y, z, 1.0f)) 
+                    && !PointSphereCollision(glm::vec4(eevee_1_coords.x, eevee_1_coords.y, eevee_1_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(eevee_2_coords.x, eevee_2_coords.y, eevee_2_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(cow_coords.x, cow_coords.y, cow_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(cutifly_coords.x, cutifly_coords.y, cutifly_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                ) {
+                    // movimentação para frente
+                    camera_position_c += -w_vector * speed;
+                    camera_position_c.y = 0.0f;
+                }
             }
             if(g_PressingKeyS) {
-                // movimentação para trás
-                camera_position_c += w_vector * speed;
+                // verifica se o jogador não passou das bordas do jogo
+                if (checkBoundaries(glm::vec4(x, y, z, 1.0f))
+                    && !PointSphereCollision(glm::vec4(eevee_1_coords.x, eevee_1_coords.y, eevee_1_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(eevee_2_coords.x, eevee_2_coords.y, eevee_2_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(cow_coords.x, cow_coords.y, cow_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(cutifly_coords.x, cutifly_coords.y, cutifly_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                ) {
+                    // movimentação para trás
+                    camera_position_c += w_vector * speed;
+                    camera_position_c.y = 0.0f;
+                }
             }
             if(g_PressingKeyD) {
-                // movimentação para direita
-                camera_position_c += u_vector * speed;
+                // verifica se o jogador não passou das bordas do jogo
+                if (checkBoundaries(glm::vec4(x, y, z, 1.0f))
+                    && !PointSphereCollision(glm::vec4(eevee_1_coords.x, eevee_1_coords.y, eevee_1_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(eevee_2_coords.x, eevee_2_coords.y, eevee_2_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(cow_coords.x, cow_coords.y, cow_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(cutifly_coords.x, cutifly_coords.y, cutifly_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                ) {
+                    // movimentação para direita
+                    camera_position_c += u_vector * speed;
+                    camera_position_c.y = 0.0f;
+                }
             }
             if(g_PressingKeyA) {
-                // movimentação para esquerda
-                camera_position_c += -u_vector * speed;
+                // verifica se o jogador não passou das bordas do jogo
+                if (checkBoundaries(glm::vec4(x, y, z, 1.0f))
+                    && !PointSphereCollision(glm::vec4(eevee_1_coords.x, eevee_1_coords.y, eevee_1_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(eevee_2_coords.x, eevee_2_coords.y, eevee_2_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(cow_coords.x, cow_coords.y, cow_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                    && !PointSphereCollision(glm::vec4(cutifly_coords.x, cutifly_coords.y, cutifly_coords.z, 1.0f), glm::vec4(x, y, z, 1.0f), 1.0f)
+                ) {
+                    // movimentação para esquerda
+                    camera_position_c += -u_vector * speed;
+                    camera_position_c.y = 0.0f;
+                }
             }
-            
+
             t_prev = (float)glfwGetTime();
         }
 
@@ -483,7 +552,7 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, EEVEE);
         DrawVirtualObject("eevee");
 
-        model = Matrix_Translate(-0.5f,0.0f,0.0f)
+        model = Matrix_Translate(eevee_2_coords.x, eevee_2_coords.y, eevee_2_coords.z)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
               * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
@@ -492,22 +561,22 @@ int main(int argc, char* argv[])
         DrawVirtualObject("eevee");
 
         // Desenhamos o modelo da vaca
-        model = Matrix_Translate(1.0f,0.0f,0.0f)
+        model = Matrix_Translate(cow_coords.x, cow_coords.y, cow_coords.z)
               * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, COW);
         DrawVirtualObject("cow");
 
-        // Desenhamos o modelo do coelho
-        model = Matrix_Translate(0.5f,0.0f,0.0f)
+        // Desenhamos o modelo do cutifly
+        model = Matrix_Translate(cutifly_coords.x, cutifly_coords.y, cutifly_coords.z)
               * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
-              * Matrix_Scale(0.25, 0.25, 0.25);
+              * Matrix_Scale(0.15, 0.15, 0.15);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, CUTIFLY);
         DrawVirtualObject("cutifly");
 
         // Desenhamos o plano do chão
-        model = Matrix_Translate(0.0f,-1.1f,0.0f);
+        model = Matrix_Translate(0.0f, -0.5f, 0.0f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");

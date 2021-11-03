@@ -33,6 +33,7 @@ uniform vec4 bbox_max;
 uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
+uniform sampler2D TextureImage3;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec3 color;
@@ -128,6 +129,7 @@ void main()
     vec3 Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
     vec3 Kd1 = texture(TextureImage1, vec2(U,V)).rgb;
     vec3 Kd2 = texture(TextureImage2, vec2(U,V)).rgb;
+    vec3 Kd3 = texture(TextureImage3, vec2(U,V)).rgb;
 
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
@@ -140,6 +142,8 @@ void main()
         vec4 h = (v + l) / length(v + l);
 
         color = Kd0 * (lambert + 0.01) + vec3(0.2, 0.3, 1) * vec3(1, 1, 1) + vec3(1, 1, 1) * pow(dot(n, h), 80);
+    } else if (object_id == PLANE) {
+        color = Kd3 * (lambert + 0.01);
     } else {
         color = Kd0 * (lambert + 0.01) + Kd1 * (0.25 - lambert);
     }
