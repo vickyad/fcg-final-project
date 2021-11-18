@@ -27,6 +27,9 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+// Valores de saída ("out") de um Vertex Shader são repassados para o Fragment Shader
+out vec3 gouraud_color;
+
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec3 color;
 
@@ -105,7 +108,7 @@ void main()
         float lambert = max(0,dot(n,l));
 
         vec4 h = (v + l) / length(v + l);
-        color = Kd0 * (lambert + 0.01) + vec3(0.2, 0.3, 1) * vec3(1, 1, 1) + vec3(1, 1, 1) * pow(dot(n, h), 80);
+        gouraud_color = Kd0 * (lambert + 0.01) + vec3(0.2, 0.3, 1) * vec3(1, 1, 1) + vec3(1, 1, 1) * pow(dot(n, h), 80);
     }
 
     // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
