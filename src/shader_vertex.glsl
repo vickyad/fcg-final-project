@@ -28,10 +28,8 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // Valores de saída ("out") de um Vertex Shader são repassados para o Fragment Shader
-out vec3 gouraud_color;
-
-// O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
-out vec3 color;
+out vec3 gouraud_shading_diffuse_ambient;
+out vec3 gouraud_shading_specular;
 
 // Atributos de v�rtice que ser�o gerados como sa�da ("out") pelo Vertex Shader.
 // ** Estes ser�o interpolados pelo rasterizador! ** gerando, assim, valores
@@ -94,9 +92,10 @@ void main()
         float U = (position_model.x - minx)/(maxx - minx);
         float V = (position_model.y - miny)/(maxy - miny);
 
-        vec3 Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
-        vec3 Kd1 = texture(TextureImage1, vec2(U,V)).rgb;
-        vec3 Kd2 = texture(TextureImage2, vec2(U,V)).rgb;
+        // Texture mapping will be applied per-pixel in the Fragment Shader
+        // vec3 Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
+        // vec3 Kd1 = texture(TextureImage1, vec2(U,V)).rgb;
+        // vec3 Kd2 = texture(TextureImage2, vec2(U,V)).rgb;
 
         vec4 origin = vec4(0.0, 0.0, 0.0, 1.0);
         vec4 camera_position = inverse(view) * origin;
@@ -108,7 +107,8 @@ void main()
         float lambert = max(0,dot(n,l));
 
         vec4 h = (v + l) / length(v + l);
-        gouraud_color = Kd0 * (lambert + 0.01) + vec3(0.2, 0.3, 1) * vec3(1, 1, 1) + vec3(1, 1, 1) * pow(dot(n, h), 80);
+        gouraud_shading_diffuse_ambient = lambert + vec3(0.2, 0.3, 1) * vec3(1, 1, 1);
+        gouraud_shading_specular        = vec3(1, 1, 1) * pow(dot(n, h), 80);
     }
 
     // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)

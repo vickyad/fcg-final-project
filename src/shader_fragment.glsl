@@ -36,7 +36,8 @@ uniform sampler2D TextureImage2;
 uniform sampler2D TextureImage3;
 
 // Valores de entrada ("in") de um Fragment Shader vêm do Vertex Shader
-in vec3 gouraud_color;
+in vec3 gouraud_shading_diffuse_ambient;
+in vec3 gouraud_shading_specular;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec3 color;
@@ -144,7 +145,7 @@ void main()
         // Blinn-Phong Shading
         // vec4 h = (v + l) / length(v + l);
         // color = Kd0 * (lambert + 0.01) + vec3(0.2, 0.3, 1) * vec3(1, 1, 1) + vec3(1, 1, 1) * pow(dot(n, h), 80);
-        color = gouraud_color;
+        color = (Kd0 * gouraud_shading_diffuse_ambient) + gouraud_shading_specular;
     } else if (object_id == PLANE) {
         color = Kd3 * (lambert + 0.01);
     } else {
