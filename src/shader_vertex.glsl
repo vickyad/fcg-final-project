@@ -107,8 +107,9 @@ void main()
         float lambert = max(0,dot(n,l));
 
         vec4 h = (v + l) / length(v + l);
+        float dot_positive = max(0, dot(n, h));
         gouraud_shading_diffuse_ambient = lambert + vec3(0.2, 0.3, 1) * vec3(1, 1, 1);
-        gouraud_shading_specular        = vec3(1, 1, 1) * pow(dot(n, h), 80);
+        gouraud_shading_specular        = vec3(1, 1, 1) * pow(dot_positive, 80);
     }
 
     // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
